@@ -51,10 +51,33 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 .blocked-ic{font-size:64px}
 .blocked-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--red);text-align:center}
 .blocked-sub{font-size:14px;color:var(--muted);text-align:center;line-height:1.7}
-#ls{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
-.ll{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;background:linear-gradient(135deg,#fff,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.lsub{font-size:13px;color:var(--muted)}
-.lsp{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite}
+#ls{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;overflow:hidden;background:var(--bg)}
+#ls-bg{position:absolute;inset:0;z-index:0}
+#ls-bg canvas{position:absolute;inset:0;width:100%;height:100%}
+.ls-glow1{position:absolute;width:320px;height:320px;border-radius:50%;background:radial-gradient(circle,rgba(124,111,253,.18) 0%,transparent 70%);top:20%;left:50%;transform:translateX(-50%);animation:lsFloat 4s ease-in-out infinite}
+.ls-glow2{position:absolute;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(0,224,150,.10) 0%,transparent 70%);bottom:25%;right:10%;animation:lsFloat 5s ease-in-out infinite reverse}
+.ls-inner{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:0}
+.ls-logo-wrap{position:relative;width:88px;height:88px;margin-bottom:28px}
+.ls-hex{position:absolute;inset:0;animation:lsSpin 6s linear infinite}
+.ls-hex svg{width:100%;height:100%}
+.ls-hex2{position:absolute;inset:6px;animation:lsSpin 4s linear infinite reverse}
+.ls-hex2 svg{width:100%;height:100%}
+.ls-coin{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.ls-coin-inner{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#ffc84a,#ff9f2a);display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 20px rgba(255,200,74,.4),0 0 40px rgba(255,200,74,.15);animation:lsPulse 2s ease-in-out infinite}
+.ls-coin-inner::after{content:'';position:absolute;inset:0;border-radius:50%;border:2px solid rgba(255,255,255,.2)}
+.ll{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;background:linear-gradient(120deg,#fff 20%,var(--accent) 60%,#b06bff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px;letter-spacing:-.3px}
+.lsub{font-size:12px;color:var(--muted);margin-bottom:32px;font-family:'Inter',sans-serif;letter-spacing:.3px}
+.ls-bar-wrap{width:160px;height:3px;background:rgba(255,255,255,.07);border-radius:4px;overflow:hidden;position:relative}
+.ls-bar{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),#b06bff,var(--green));border-radius:4px;animation:lsBar 2.4s cubic-bezier(.4,0,.2,1) forwards;box-shadow:0 0 8px rgba(124,111,253,.6)}
+.ls-dots{display:flex;gap:6px;margin-top:14px}
+.ls-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);opacity:.2;animation:lsDot 1.2s ease-in-out infinite}
+.ls-dot:nth-child(2){animation-delay:.2s}
+.ls-dot:nth-child(3){animation-delay:.4s}
+@keyframes lsSpin{to{transform:rotate(360deg)}}
+@keyframes lsFloat{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-18px)}}
+@keyframes lsPulse{0%,100%{transform:scale(1);box-shadow:0 0 20px rgba(255,200,74,.4),0 0 40px rgba(255,200,74,.15)}50%{transform:scale(1.06);box-shadow:0 0 28px rgba(255,200,74,.6),0 0 55px rgba(255,200,74,.25)}}
+@keyframes lsBar{0%{width:0%}40%{width:55%}70%{width:80%}90%{width:92%}100%{width:100%}}
+@keyframes lsDot{0%,100%{opacity:.2;transform:scale(1)}50%{opacity:1;transform:scale(1.4)}}
 @keyframes sp{to{transform:rotate(360deg)}}
 .bnav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,12,18,0.97);backdrop-filter:blur(24px);border-top:1px solid var(--border);display:flex;z-index:100;padding:10px 0 16px}
 .ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:2px 0}
@@ -258,9 +281,35 @@ select.fi option{background:#1a1d26}
   <div class="blocked-sub">Check your Network and try again</div>
 </div>
 <div id="ls">
-  <div class="ll">Earnexo-Trusted 100%</div>
-  <div class="lsub">Loading your account...</div>
-  <div class="lsp"></div>
+  <div id="ls-bg">
+    <div class="ls-glow1"></div>
+    <div class="ls-glow2"></div>
+  </div>
+  <div class="ls-inner">
+    <div class="ls-logo-wrap">
+      <div class="ls-hex">
+        <svg viewBox="0 0 88 88" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="44,4 80,24 80,64 44,84 8,64 8,24" stroke="rgba(124,111,253,0.5)" stroke-width="1.5" fill="none" stroke-dasharray="4 3"/>
+        </svg>
+      </div>
+      <div class="ls-hex2">
+        <svg viewBox="0 0 76 76" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="38,3 70,21 70,55 38,73 6,55 6,21" stroke="rgba(0,224,150,0.35)" stroke-width="1" fill="none"/>
+        </svg>
+      </div>
+      <div class="ls-coin">
+        <div class="ls-coin-inner">৳</div>
+      </div>
+    </div>
+    <div class="ll">Earnexo</div>
+    <div class="lsub">Loading your account...</div>
+    <div class="ls-bar-wrap"><div class="ls-bar"></div></div>
+    <div class="ls-dots">
+      <div class="ls-dot"></div>
+      <div class="ls-dot"></div>
+      <div class="ls-dot"></div>
+    </div>
+  </div>
 </div>
 <div class="page active" id="page-home">
   <div class="prof">
