@@ -455,8 +455,8 @@ select.fi option{background:#1a1d26}
     <div class="adov-rsub" id="adovRSub">reward</div>
     <div class="adov-msg" id="adovMsg"></div>
     <div class="adov-status" id="adovStatus"></div>
-    <div class="adov-waiting" id="adovWaiting">বিজ্ঞাপনটি দেখা শেষ হলে<br>নিচের বাটনে ট্যাপ করুন</div>
-    <button class="adov-continue" id="adovContinue" onclick="onAdsterraBack()">✅ বিজ্ঞাপন দেখা হয়েছে</button>
+    <div class="adov-waiting" id="adovWaiting" style="display:none!important"></div>
+    <button class="adov-continue" id="adovContinue" style="display:none!important" onclick="onAdsterraBack()">✅ বিজ্ঞাপন দেখা হয়েছে</button>
     <div class="adov-wd-loading" id="adovWdLoading">
       <div class="adov-wd-spinner"></div>
       <div class="adov-wd-txt">Processing your withdrawal...</div>
@@ -765,7 +765,7 @@ function playSlot(){
       if(net.link){const tg=window.Telegram?.WebApp;if(tg)tg.openLink(net.link);else window.open(net.link,'_blank','noopener');}
       else if(net.script){const div=document.createElement('div');div.innerHTML=net.script;div.querySelectorAll('script').forEach(sc=>{const ns=document.createElement('script');if(sc.src){ns.src=sc.src;ns.async=true;}else ns.textContent=sc.textContent;document.body.appendChild(ns);});}
     }catch(e){}
-    _showContinueBtn();
+    setTimeout(()=>_next(),1000);
 
   }else{_next();}
 }
