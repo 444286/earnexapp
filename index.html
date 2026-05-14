@@ -442,29 +442,30 @@ select.fi option{background:#1a1d26}
     <button class="adov-pre-close" id="adovPreCloseBtn" onclick="adovPreClose()">Close</button>
     <button class="adov-pre-claim" id="adovPreClaimBtn" style="display:none" onclick="claimReward()">🎁 Claim Reward</button>
   </div>
-  <div class="adov-type" id="adovType">📺 WATCH & EARN</div>
-  <div class="adov-title" id="adovTitle">Watching Ads...</div>
-  <div class="adov-step-lbl" id="adovStepLbl"></div>
-  <div class="adov-steps" id="adovSteps"></div>
-  <div class="adov-net-name" id="adovNetName"></div>
-  <div class="adov-reward-wrap">
-    <div class="adov-reward" id="adovReward">0.50</div>
-    <div class="adov-taka">টাকা</div>
-  </div>
-  <div class="adov-rsub" id="adovRSub">reward</div>
-  <div class="adov-msg" id="adovMsg"></div>
-  <div class="adov-status" id="adovStatus"></div>
-  <div class="adov-waiting" id="adovWaiting">বিজ্ঞাপনটি দেখা শেষ হলে<br>নিচের বাটনে ট্যাপ করুন</div>
-  <button class="adov-continue" id="adovContinue" onclick="onAdsterraBack()">✅ বিজ্ঞাপন দেখা হয়েছে</button>
-  <button class="adov-claim" id="adovClaim" onclick="claimReward()">🎁 Claim Reward</button>
-  <div class="adov-wd-loading" id="adovWdLoading">
-    <div class="adov-wd-spinner"></div>
-    <div class="adov-wd-txt">Processing your withdrawal...</div>
-  </div>
-  <div class="adov-complete" id="adovComplete">
-    <div class="adov-complete-ic">🎉</div>
-    <div class="adov-complete-txt" id="adovCompleteTxt">+৳ 0.50 Added!</div>
-    <div class="adov-complete-sub" id="adovCompleteSub">Balance updated automatically</div>
+  <div id="adovMain" style="display:none;flex-direction:column;align-items:center;gap:10px;width:100%">
+    <div class="adov-type" id="adovType">📺 WATCH & EARN</div>
+    <div class="adov-title" id="adovTitle">Watching Ads...</div>
+    <div class="adov-step-lbl" id="adovStepLbl"></div>
+    <div class="adov-steps" id="adovSteps"></div>
+    <div class="adov-net-name" id="adovNetName"></div>
+    <div class="adov-reward-wrap">
+      <div class="adov-reward" id="adovReward">0.50</div>
+      <div class="adov-taka">টাকা</div>
+    </div>
+    <div class="adov-rsub" id="adovRSub">reward</div>
+    <div class="adov-msg" id="adovMsg"></div>
+    <div class="adov-status" id="adovStatus"></div>
+    <div class="adov-waiting" id="adovWaiting">বিজ্ঞাপনটি দেখা শেষ হলে<br>নিচের বাটনে ট্যাপ করুন</div>
+    <button class="adov-continue" id="adovContinue" onclick="onAdsterraBack()">✅ বিজ্ঞাপন দেখা হয়েছে</button>
+    <div class="adov-wd-loading" id="adovWdLoading">
+      <div class="adov-wd-spinner"></div>
+      <div class="adov-wd-txt">Processing your withdrawal...</div>
+    </div>
+    <div class="adov-complete" id="adovComplete">
+      <div class="adov-complete-ic">🎉</div>
+      <div class="adov-complete-txt" id="adovCompleteTxt">+৳ 0.50 Added!</div>
+      <div class="adov-complete-sub" id="adovCompleteSub">Balance updated automatically</div>
+    </div>
   </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -656,6 +657,20 @@ function updateWatchCard(){
 
 function buildQueue(chainData){const slots=chainData.slots||[];const creds=APP.settings.credentials||{};return slots.map(n=>({name:n,...(creds[n]||{})}));}
 
+function _showMain(){document.getElementById('adovMain').style.display='flex';}
+function _hideMain(){document.getElementById('adovMain').style.display='none';}
+function _resetPreload(){
+  document.getElementById('adovPreSpinner').style.display='';
+  document.getElementById('adovPreIc').style.display='none';
+  document.getElementById('adovPreIc').textContent='✅';
+  document.getElementById('adovPreTitle').textContent='Processing...';
+  document.getElementById('adovPreSub').textContent='Starting ad session';
+  document.getElementById('adovPreCloseBtn').style.display='';
+  document.getElementById('adovPreClaimBtn').style.display='none';
+  document.getElementById('adovPreClaimBtn').disabled=false;
+  document.getElementById('adovPreClaimBtn').textContent='🎁 Claim Reward';
+}
+
 function startChain(type,wdData=null){
   if(type==='watch'&&isDailyLimitReached()){showToast("✅ Today's limit reached");return;}
   if(type==='watch'&&cooldownEndTime>Date.now()){showToast(`⏳ Wait ${Math.ceil((cooldownEndTime-Date.now())/1000)}s`);return;}
@@ -665,22 +680,16 @@ function startChain(type,wdData=null){
   CS={active:true,type,queue,idx:0,total:queue.length,reward:chainData.reward||0.5,done:false,wdData};
   _slotAdvanced=false;
 
-  // Show preloader overlay first
-  document.getElementById('adOverlay').classList.add('open');
-  document.getElementById('adovPreload').classList.add('show');
-  document.getElementById('adovPreSub').textContent='Starting ad session';
-
-  // Hide all main content while preloading
+  // Reset & show preload card, hide main content
+  _resetPreload();
+  _hideMain();
   document.getElementById('adovComplete').classList.remove('show');
   document.getElementById('adovWdLoading').classList.remove('show');
-  document.getElementById('adovClaim').classList.remove('show');
   _hideContinueBtn();
-  document.querySelector('.adov-reward-wrap').style.visibility='hidden';
-  document.getElementById('adovSteps').style.visibility='hidden';
-  document.getElementById('adovRSub').style.visibility='hidden';
-  document.getElementById('adovType').style.visibility='hidden';
-  document.getElementById('adovTitle').style.visibility='hidden';
+  document.getElementById('adovPreload').classList.add('show');
+  document.getElementById('adOverlay').classList.add('open');
 
+  // Prepare main content (hidden) for after preload
   const typeEl=document.getElementById('adovType');const msg=document.getElementById('adovMsg');
   document.querySelector('.adov-reward-wrap').style.display='';
   document.getElementById('adovSteps').style.display='';
@@ -692,31 +701,26 @@ function startChain(type,wdData=null){
     document.getElementById('adovSteps').style.display='flex';
     msg.style.display='none';
   }else{
-    document.getElementById('adovTitle').textContent='Processing...';
     document.querySelector('.adov-reward-wrap').style.display='none';
     document.getElementById('adovSteps').style.display='none';
     document.getElementById('adovRSub').style.display='none';
     msg.style.display='none';
-    document.getElementById('adovWdLoading').classList.add('show');
   }
   document.getElementById('adovSteps').innerHTML=queue.map((_,i)=>`<div class="adov-s" id="as_${i}"></div>`).join('');
   document.getElementById('adovTitle').textContent=type==='watch'?'Watching Ads...':'Processing...';
 
-  // After 1.5s hide preloader and show ad UI
+  // After 1.5s: hide preload, show main, start ad
   setTimeout(()=>{
     document.getElementById('adovPreload').classList.remove('show');
-    document.querySelector('.adov-reward-wrap').style.visibility='';
-    document.getElementById('adovSteps').style.visibility='';
-    document.getElementById('adovRSub').style.visibility='';
-    document.getElementById('adovType').style.visibility='';
-    document.getElementById('adovTitle').style.visibility='';
+    _showMain();
+    if(type==='wd') document.getElementById('adovWdLoading').classList.add('show');
     playSlot();
   },1500);
 }
 
 // ── SLOT ENGINE ──
 let _slotAdvanced=false;
-function adovPreClose(){document.getElementById('adOverlay').classList.remove('open');document.getElementById('adovPreload').classList.remove('show');CS={active:false,type:null,queue:[],idx:0,total:0,reward:0,done:false,wdData:null};}
+function adovPreClose(){document.getElementById('adOverlay').classList.remove('open');document.getElementById('adovPreload').classList.remove('show');_resetPreload();_hideMain();CS={active:false,type:null,queue:[],idx:0,total:0,reward:0,done:false,wdData:null};}
 function _showContinueBtn(){document.getElementById('adovWaiting').classList.add('show');document.getElementById('adovContinue').classList.add('show');}
 function _hideContinueBtn(){document.getElementById('adovWaiting').classList.remove('show');document.getElementById('adovContinue').classList.remove('show');}
 function onAdsterraBack(){_hideContinueBtn();_next();}
@@ -774,7 +778,8 @@ async function chainAllDone(){
   _hideContinueBtn();
   document.querySelectorAll('.adov-s').forEach(el=>{if(!el.classList.contains('skip'))el.className='adov-s done';});
   if(CS.type==='watch'){
-    // Show preload card again with claim state
+    // Switch back to preload card in "claim" state
+    _hideMain();
     document.getElementById('adovPreSpinner').style.display='none';
     document.getElementById('adovPreIc').style.display='block';
     document.getElementById('adovPreTitle').textContent='Ad Complete!';
@@ -811,15 +816,8 @@ async function claimReward(){
     claimBtn.style.display='none';
     setTimeout(()=>{
       document.getElementById('adOverlay').classList.remove('open');
-      // Reset preload card for next use
-      document.getElementById('adovPreSpinner').style.display='';
-      document.getElementById('adovPreIc').style.display='none';
-      document.getElementById('adovPreIc').textContent='✅';
-      document.getElementById('adovPreTitle').textContent='Processing...';
-      document.getElementById('adovPreSub').textContent='Starting ad session';
-      document.getElementById('adovPreCloseBtn').style.display='';
-      claimBtn.style.display='none';claimBtn.disabled=false;claimBtn.textContent='🎁 Claim Reward';
-      document.getElementById('adovPreload').classList.remove('show');
+      _resetPreload();
+      _hideMain();
       startCooldownUI(newCooldownEnd-Date.now());
       showToast(`+৳ ${reward.toFixed(2)} টাকা added!`);
       CS={active:false,type:null,queue:[],idx:0,total:0,reward:0,done:false,wdData:null};
