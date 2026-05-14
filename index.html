@@ -252,6 +252,9 @@ select.fi option{background:#1a1d26}
 .adov-pre-sub{font-size:13px;color:var(--muted);font-family:'Inter',sans-serif;letter-spacing:.2px}
 .adov-pre-close{margin-top:6px;background:rgba(255,255,255,.08);border:1px solid var(--border);color:rgba(255,255,255,.6);border-radius:30px;padding:10px 32px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif}
 .adov-pre-close:active{transform:scale(.96)}
+.adov-pre-claim{margin-top:6px;background:linear-gradient(135deg,var(--green),#00c47a);border:none;color:#fff;border-radius:30px;padding:13px 36px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;animation:popIn .35s cubic-bezier(.34,1.56,.64,1);letter-spacing:.2px}
+.adov-pre-claim:active{transform:scale(.96)}
+.adov-pre-ic{font-size:42px;animation:popIn .4s cubic-bezier(.34,1.56,.64,1)}
 .adov-claim{margin-top:8px;background:linear-gradient(135deg,var(--green),#00c47a);color:#fff;border:none;border-radius:14px;padding:15px 36px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;display:none;letter-spacing:.3px;animation:popIn .3s cubic-bezier(.34,1.56,.64,1)}
 .adov-claim.show{display:block}
 .adov-claim:active{transform:scale(.96)}
@@ -432,10 +435,12 @@ select.fi option{background:#1a1d26}
 </div>
 <div class="adov" id="adOverlay">
   <div class="adov-preload" id="adovPreload">
-    <div class="adov-pre-spinner"></div>
-    <div class="adov-pre-title">Processing...</div>
+    <div class="adov-pre-spinner" id="adovPreSpinner"></div>
+    <div class="adov-pre-ic" id="adovPreIc" style="display:none">✅</div>
+    <div class="adov-pre-title" id="adovPreTitle">Processing...</div>
     <div class="adov-pre-sub" id="adovPreSub">Starting ad session</div>
-    <button class="adov-pre-close" onclick="adovPreClose()">Close</button>
+    <button class="adov-pre-close" id="adovPreCloseBtn" onclick="adovPreClose()">Close</button>
+    <button class="adov-pre-claim" id="adovPreClaimBtn" style="display:none" onclick="claimReward()">🎁 Claim Reward</button>
   </div>
   <div class="adov-type" id="adovType">📺 WATCH & EARN</div>
   <div class="adov-title" id="adovTitle">Watching Ads...</div>
@@ -769,8 +774,14 @@ async function chainAllDone(){
   _hideContinueBtn();
   document.querySelectorAll('.adov-s').forEach(el=>{if(!el.classList.contains('skip'))el.className='adov-s done';});
   if(CS.type==='watch'){
-    document.getElementById('adovTitle').textContent='Ad Complete!';
-    document.getElementById('adovClaim').classList.add('show');
+    // Show preload card again with claim state
+    document.getElementById('adovPreSpinner').style.display='none';
+    document.getElementById('adovPreIc').style.display='block';
+    document.getElementById('adovPreTitle').textContent='Ad Complete!';
+    document.getElementById('adovPreSub').textContent='Tap below to collect your reward';
+    document.getElementById('adovPreCloseBtn').style.display='none';
+    document.getElementById('adovPreClaimBtn').style.display='block';
+    document.getElementById('adovPreload').classList.add('show');
   }else{
     const savedWdData={...CS.wdData};
     document.getElementById('adovTitle').textContent='Processing...';
@@ -784,8 +795,8 @@ async function chainAllDone(){
 }
 
 async function claimReward(){
-  document.getElementById('adovClaim').classList.remove('show');
-  document.getElementById('adovClaim').disabled=true;
+  const claimBtn=document.getElementById('adovPreClaimBtn');
+  claimBtn.disabled=true;claimBtn.textContent='⏳ Saving...';
   const reward=CS.reward||APP.settings.watchChain?.reward||0.5;
   const cooldownSec=APP.settings.watchChain?.cooldownSec||30;const newCooldownEnd=Date.now()+(cooldownSec*1000);
   try{
@@ -794,20 +805,28 @@ async function claimReward(){
     const nw=[...existingWatched,{date:new Date().toISOString(),reward,type:'watch_chain'}];
     await db.ref('users/'+APP.userId).update({balance:(d.balance||0)+reward,totalEarned:(d.totalEarned||0)+reward,watchedAds:nw,cooldownEndTime:newCooldownEnd});
     cooldownEndTime=newCooldownEnd;
-    document.getElementById('adovCompleteTxt').textContent=`+৳ ${reward.toFixed(2)} টাকা Added!`;
-    document.getElementById('adovCompleteSub').textContent='Your balance has been updated';
-    document.getElementById('adovComplete').classList.add('show');
+    document.getElementById('adovPreIc').textContent='🎉';
+    document.getElementById('adovPreTitle').textContent=`+৳ ${reward.toFixed(2)} Added!`;
+    document.getElementById('adovPreSub').textContent='Balance updated successfully';
+    claimBtn.style.display='none';
     setTimeout(()=>{
       document.getElementById('adOverlay').classList.remove('open');
-      document.getElementById('adovClaim').disabled=false;
+      // Reset preload card for next use
+      document.getElementById('adovPreSpinner').style.display='';
+      document.getElementById('adovPreIc').style.display='none';
+      document.getElementById('adovPreIc').textContent='✅';
+      document.getElementById('adovPreTitle').textContent='Processing...';
+      document.getElementById('adovPreSub').textContent='Starting ad session';
+      document.getElementById('adovPreCloseBtn').style.display='';
+      claimBtn.style.display='none';claimBtn.disabled=false;claimBtn.textContent='🎁 Claim Reward';
+      document.getElementById('adovPreload').classList.remove('show');
       startCooldownUI(newCooldownEnd-Date.now());
       showToast(`+৳ ${reward.toFixed(2)} টাকা added!`);
       CS={active:false,type:null,queue:[],idx:0,total:0,reward:0,done:false,wdData:null};
-    },1800);
+    },1500);
   }catch(e){
     showToast('❌ Error saving reward');
-    document.getElementById('adovClaim').classList.add('show');
-    document.getElementById('adovClaim').disabled=false;
+    claimBtn.disabled=false;claimBtn.textContent='🎁 Claim Reward';
     CS={active:false,type:null,queue:[],idx:0,total:0,reward:0,done:false,wdData:null};
   }
 }
